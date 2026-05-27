@@ -1,5 +1,5 @@
 import { ResendClient, Sender } from '../config/resend.js'
-import { generateVerificationEmail } from './emailTemplate.js';
+import { generateVerificationEmail, sendWelcomeEmailTemplate } from './emailTemplate.js';
 
 export const sendVerificationEmail = (email, fullName, verificationToken, verificationTokenExpiry) => {
 (async function () {
@@ -21,4 +21,19 @@ export const sendVerificationEmail = (email, fullName, verificationToken, verifi
 
   console.log({ data });
 })()
+}
+
+export const sendWelcomeEmail = (email, fullName, appUrl) => {
+    (async function () {
+      const { data, error } = await ResendClient.emails.send({
+        from: `${Sender.name} <${Sender.email}>`,
+        to: email,
+        subject: 'Welcome to PayPing!',
+        html: sendWelcomeEmailTemplate({ email, fullName, appUrl })?.html,
+        category: 'welcome',
+        metadata: {
+            userEmail: email,
+        }
+        });
+      })()
 }
