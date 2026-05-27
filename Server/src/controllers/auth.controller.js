@@ -4,7 +4,8 @@ import crypto from 'crypto';
 import { logger } from '../config/logger.js';
 import User from "../models/user.model.js";
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie.js';
-import { sendVerificationEmail } from '../emails/emailHandler.js';
+import { sendVerificationEmail, sendWelcomeEmail } from '../emails/emailHandler.js';
+import { ENV } from '../config/env.js';
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -52,6 +53,37 @@ export const signup = async (req, res) => {
     } catch (error) {
         logger.error("Error in sugnup controller", error);
         return res.status(500).json({ message: "Internal Server error" })
+    }
+}
+
+export const verifyEmail = async (req, res) => {
+    try {
+        const { code } = req.body;
+        if(!code) return res.status(400).json({message: "Verification code required"})
+
+        const normalizedCode = code.trim();
+        const user = await User.findOne({ verificationToken: normalizedCode, verificationTokenExpiry: {$gt: Date.now()}})
+        if(!user) res.status(400).json({message: "invalid or expired verification code"})
+        
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        user.verificationTokenExpiry = undefined;
+
+        await user.save()
+        //optional for auto-login
+        // generateTokenAndSetCookie(user._id, res)
+        sendWelcomeEmail(user.email, user.fullName, ENV.CLIENT_URL)
+        return res.status(200).json({message: "Email verified successfully"})
+    } catch (error) {
+        logger.error({
+         message: "Verify Email Controller Error",
+         error: error.message,
+         stack: error.stack,
+      });
+
+      return res.status(500).json({
+         message: "Internal server error",
+      });
     }
 }
 
