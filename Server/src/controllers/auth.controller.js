@@ -50,7 +50,42 @@ export const signup = async (req, res) => {
                     verificationTokenExpiry: newUser.verificationTokenExpiry
                 });
     } catch (error) {
-        logger.error(error);
+        logger.error("Error in sugnup controller", error);
         return res.status(500).json({ message: "Internal Server error" })
     }
+}
+
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        if(!email || !password) return res.status(400).json({ message: "All fields required"});
+        
+        const normarlizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({email: normarlizedEmail});
+        if(!user) return res.status(404).json({ message: "invalid email or password"})
+
+        const passwordValid = await bcryptjs.compare(password, user.password)
+        if(!passwordValid) return res.status(400).json({ message: "Invalid email or password" })
+
+        generateTokenAndSetCookie(user._id, res);
+
+        res.status(200).json({
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+        })
+    
+    } catch (error) {
+        logger.error("error in login controller", error)
+        res.status(500).json({message: "Internal server error"})
+    }
+}
+
+export const logout = async (req, res) => {
+    res.clearCookie("jwt", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+    });
+    res.status(201).json({message: "Successfully logged out"})
 }
