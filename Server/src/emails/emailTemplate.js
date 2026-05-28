@@ -406,3 +406,191 @@ You're receiving this email because you verified your email address on PayMint.
 
     return { html, text };
 };
+
+// server/src/emails/emailTemplates/passwordResetTemplate.js
+
+/**
+ * Generates the password reset request email
+ * @param {Object} params
+ * @param {string} params.name - User's full name
+ * @param {string} params.resetUrl - Password reset link with token
+ * @param {number} params.expiryMinutes - Token expiration in minutes
+ * @returns {{ html: string, text: string }}
+ */
+export const sendPasswordResetEmailTemplate = ({ name, email, resetUrl }) => {
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password - PayMint</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #F8FAFC; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 48px 0 48px; text-align: left;">
+              <div style="font-size: 24px; font-weight: 700; color: #4F46E5; letter-spacing: -0.5px;">
+                ⚡ PayMint
+              </div>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 32px 48px 0 48px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <!-- Lock Icon -->
+                    <div style="display: inline-block; width: 48px; height: 48px; background-color: #FEF3C7; border-radius: 50%; margin-bottom: 20px; text-align: center; line-height: 48px;">
+                      <span style="font-size: 24px;">🔐</span>
+                    </div>
+                    
+                    <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #0F172A; line-height: 1.3;">
+                      Reset your password
+                    </h1>
+                    
+                    <p style="margin: 12px 0 0 0; font-size: 15px; color: #475569; line-height: 1.6;">
+                      Hey ${name},<br><br>
+                      We received a request to reset the password for your PayMint account. Click the button below to create a new password.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CTA Button -->
+          <tr>
+            <td style="padding: 32px 48px 0 48px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="${resetUrl}" style="display: inline-block; background-color: #4F46E5; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 14px 40px; border-radius: 8px; text-align: center;">
+                      Reset Password →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Fallback Link (for email clients that strip buttons) -->
+          <tr>
+            <td style="padding: 20px 48px 0 48px;">
+              <p style="margin: 0; font-size: 12px; color: #94A3B8; line-height: 1.5;">
+                If the button doesn't work, copy and paste this link into your browser:
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #4F46E5; word-break: break-all; line-height: 1.5;">
+                <a href="${resetUrl}" style="color: #4F46E5;">${resetUrl}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Expiry Warning -->
+          <tr>
+            <td style="padding: 24px 48px 0 48px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #FFFBEB; border-radius: 8px; border: 1px solid #FDE68A;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="vertical-align: top; width: 20px; padding-top: 1px;">
+                          <span style="font-size: 14px;">⏰</span>
+                        </td>
+                        <td style="padding-left: 10px;">
+                          <p style="margin: 0; font-size: 13px; color: #92400E; line-height: 1.5;">
+                            <span style="color: #A16207;">For security reasons, password reset links are temporary.</span>
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Security Notice -->
+          <tr>
+            <td style="padding: 16px 48px 0 48px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="vertical-align: top; width: 20px; padding-top: 1px;">
+                    <span style="font-size: 14px;">🛡️</span>
+                  </td>
+                  <td style="padding-left: 10px;">
+                    <p style="margin: 0; font-size: 13px; color: #64748B; line-height: 1.5;">
+                      <strong style="color: #0F172A;">Didn't request this?</strong><br>
+                      If you didn't request a password reset, you can safely ignore this email. 
+                      Your password will remain unchanged. No action is needed.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 24px 48px;">
+              <div style="border-top: 1px solid #E2E8F0;"></div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 0 48px 40px 48px;">
+              <p style="margin: 0; font-size: 12px; color: #94A3B8; line-height: 1.5;">
+                Need help? Reply to this email or contact us at 
+                <a href="mailto:${email}" style="color: #4F46E5; text-decoration: none;">${email}</a>
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #94A3B8; line-height: 1.5;">
+                You're receiving this email because a password reset was requested for your PayMint account.
+              </p>
+              <p style="margin: 16px 0 0 0; font-size: 11px; color: #CBD5E1;">
+                ©PayMint. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>`;
+
+    // Plain text fallback
+    const text = `
+Reset Your Password - PayMint
+
+Hey ${name},
+
+We received a request to reset the password for your PayMint account. 
+Click the link below to create a new password:
+
+${resetUrl}
+
+This link expires in. For security reasons, password reset links are temporary.
+
+If you didn't request a password reset, you can safely ignore this email. 
+Your password will remain unchanged. No action is needed.
+
+Need help? Contact us at ${email}
+
+©PayMint. All rights reserved.
+`;
+
+    return { html, text };
+};
