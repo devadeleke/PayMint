@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { logger } from '../config/logger.js';
 import User from "../models/user.model.js";
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie.js';
-import { sendVerificationEmail, sendWelcomeEmail } from '../emails/emailHandler.js';
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../emails/emailHandler.js';
 import { ENV } from '../config/env.js';
 
 export const signup = async (req, res) => {
@@ -120,4 +120,35 @@ export const logout = async (req, res) => {
         sameSite: "strict",
     });
     res.status(201).json({message: "Successfully logged out"})
+}
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if(!email) return res.status(400).json({message: "Input field must not empty"})
+        
+        const normalizedEmail = email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail })
+        if(!user) return res.status(404).json({ message: "Invalid user"});
+
+        const resetToken = crypto.randomInt(100000, 999999).toString();
+        const resetTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
+
+        user.passwordResetToken = resetToken;
+        user.passwordResetTokenExpiry = resetTokenExpiry;
+
+        await user.save();
+        generateTokenAndSetCookie(user._id, res)
+        
+        try {
+            await sendPasswordResetEmail(user.fullName, user.email, `${ENV.CLIENT_URL}/reset-password/${resetToken}`)
+        } catch (error) {
+            logger.error("Email Error: " + error);
+        }
+
+        return res.status(200).json({ message: "Reset token sent to email"})
+    } catch (error) {
+        logger.error("Error in forgot password controller", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 }
