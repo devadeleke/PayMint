@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { logger } from '../config/logger.js';
 import User from "../models/user.model.js";
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie.js';
-import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '../emails/emailHandler.js';
+import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetConfirmationEmail} from '../emails/emailHandler.js';
 import { ENV } from '../config/env.js';
 
 export const signup = async (req, res) => {
@@ -70,9 +70,14 @@ export const verifyEmail = async (req, res) => {
         user.verificationTokenExpiry = undefined;
 
         await user.save()
+
         //optional for auto-login
         // generateTokenAndSetCookie(user._id, res)
-        sendWelcomeEmail(user.email, user.fullName, ENV.CLIENT_URL)
+        try {
+            await sendWelcomeEmail(user.email, user.fullName, ENV.CLIENT_URL)
+        } catch (error) {
+            logger.error("Error sending welcome email", error);
+        }
         return res.status(200).json({message: "Email verified successfully"})
     } catch (error) {
         logger.error({
@@ -108,7 +113,7 @@ export const login = async (req, res) => {
         })
     
     } catch (error) {
-        logger.error("error in login controller", error)
+        logger.error("Error in login controller", error);       
         res.status(500).json({message: "Internal server error"})
     }
 }
@@ -149,6 +154,40 @@ export const forgotPassword = async (req, res) => {
         return res.status(200).json({ message: "Reset token sent to email"})
     } catch (error) {
         logger.error("Error in forgot password controller", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if(!password) return res.status(400).json({message: "Invalid input"});
+
+        const user = await User.findOne({
+            passwordResetToken: token,
+            passwordResetTokenExpiry: {$gt: Date.now()}
+        })
+        if(!user) return res.status(400).json({message: "Invalid token or token expired"})
+
+        const hashedPassword = await bcryptjs.hash(password, 10);
+        user.password = hashedPassword;
+        user.passwordResetToken = undefined;
+        user.passwordResetTokenExpiry = undefined;
+
+        await user.save();
+        generateTokenAndSetCookie(user._id, res)
+        
+        try {
+            await sendPasswordResetConfirmationEmail(user.fullName, user.email)
+        } catch (error) {
+            logger.error("Error sending password reset confirmation email", error);
+        }
+
+        return res.status(200).json({message: "Password reset successful"})
+    } catch (error) {
+        logger.error("Error in reset password controller", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }

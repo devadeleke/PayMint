@@ -588,9 +588,79 @@ If you didn't request a password reset, you can safely ignore this email.
 Your password will remain unchanged. No action is needed.
 
 Need help? Contact us at ${email}
-
+You're receiving this email because a password reset was requested for your PayMint account.
 ©PayMint. All rights reserved.
 `;
 
     return { html, text };
+};
+
+export const sendPasswordResetConfirmationEmailTemplate = (fullName) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>Password Reset Successful</title>
+      </head>
+      <body
+        style="
+          font-family: Arial, sans-serif;
+          background-color: #f4f4f4;
+          padding: 20px;
+          margin: 0;
+        "
+      >
+        <div
+          style="
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <h2 style="color: #22c55e; text-align: center;">
+            Password Reset Successful
+          </h2>
+
+          <p>Hello ${fullName},</p>
+
+          <p>
+            This email confirms that your account password was successfully
+            changed.
+          </p>
+
+          <p>
+            If you made this change, no further action is required and your
+            account remains secure.
+          </p>
+
+          <p>
+            If you did not reset your password, please contact our support team
+            immediately and secure your account.
+          </p>
+
+          <div
+            style="
+              margin-top: 30px;
+              padding: 15px;
+              background-color: #f8fafc;
+              border-left: 4px solid #22c55e;
+            "
+          >
+            <strong>Security Tip:</strong>
+            Never share your password with anyone and ensure you're using a
+            strong, unique password.
+          </div>
+
+          <p style="margin-top: 30px;">
+            Thank you,<br />
+            <strong>Your Application Team</strong>
+          </p>
+        </div>
+      </body>
+    </html>
+  `;
 };
