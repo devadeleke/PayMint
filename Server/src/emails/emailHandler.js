@@ -1,5 +1,5 @@
 import { ResendClient, Sender } from '../config/resend.js'
-import { generateVerificationEmail, sendWelcomeEmailTemplate, sendPasswordResetEmailTemplate } from './emailTemplate.js';
+import { generateVerificationEmail, sendWelcomeEmailTemplate, sendPasswordResetEmailTemplate, sendPasswordResetConfirmationEmailTemplate } from './emailTemplate.js';
 
 export const sendVerificationEmail = (email, fullName, verificationToken, verificationTokenExpiry) => {
 (async function () {
@@ -51,4 +51,19 @@ export const sendPasswordResetEmail = (name, email, resetUrl) => {
         }
         });
       })()
+}
+
+export const sendPasswordResetConfirmationEmail = (name, email) => {
+  (async function () {
+      const { data, error } = await ResendClient.emails.send({
+        from: `${Sender.name} <${Sender.email}>`,
+        to: email,
+        subject: 'Your Password Has Been Reset',
+        html: sendPasswordResetConfirmationEmailTemplate(name),
+        category: 'password-reset-confirmation',
+        metadata: {
+            userEmail: email,
+        }
+    });
+})()
 }
