@@ -6,19 +6,20 @@ import User from "../models/user.model.js";
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie.js';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendPasswordResetConfirmationEmail} from '../emails/emailHandler.js';
 import { ENV } from '../config/env.js';
+import { AppError } from '../utils/appError.js';
 
-export const signup = async (req, res) => {
+export const signup = async (req, res, next) => {
     const { fullName, email, password } = req.body;
     try {
-        if(!fullName || !email || !password) return res.status(400).json({ message: "All fields are required"})
-        if(password.length < 6) return res.status(400).json({ message: "Password should be at least 6 characters"})
+        if(!fullName || !email || !password) throw new AppError("All fields are required", 401)
+        if(password.length < 6) throw new AppError("Password should be at least 6 characters", 400)
         
         const normarlizedEmail = email.toLowerCase().trim();
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if(!emailRegex.test(normarlizedEmail)) return res.status(400).json({ message: 'Invalid email format' });
+        if(!emailRegex.test(normarlizedEmail)) throw new AppError('Invalid email format', 400)
 
         const existingUser = await User.findOne({ email: normarlizedEmail })
-        if(existingUser) return res.status(400).json({ message: "User already exist"});
+        if(existingUser) throw new AppError("User already exist", 400)
 
         const hashedPassword = await bcryptjs.hash(password, 10);
         const verificationToken = crypto.randomInt(100000, 999999).toString(); // Generate a 6-digit numeric token
@@ -40,23 +41,22 @@ export const signup = async (req, res) => {
             newUser.verificationToken,
          );
         } catch (error) {
-            logger.error("Email Error: " + error);
+            logger.error(error);
         }
 
         return res.status(201).json({
-                    _id: newUser._id,
-                    fullName: newUser.fullName,
-                    email: newUser.email,
-                    verificationToken: newUser.verificationToken,
-                    verificationTokenExpiry: newUser.verificationTokenExpiry
-                });
+            _id: newUser._id,
+            fullName: newUser.fullName,
+            email: newUser.email,
+            verificationToken: newUser.verificationToken,
+            verificationTokenExpiry: newUser.verificationTokenExpiry
+        });
     } catch (error) {
-        logger.error("Error in sugnup controller", error);
-        return res.status(500).json({ message: "Internal Server error" })
+        next(error)
     }
 }
 
-export const verifyEmail = async (req, res) => {
+export const verifyEmail = async (req, res, next) => {
     try {
         const { code } = req.body;
         if(!code) return res.status(400).json({message: "Verification code required"})
@@ -76,23 +76,15 @@ export const verifyEmail = async (req, res) => {
         try {
             await sendWelcomeEmail(user.email, user.fullName, ENV.CLIENT_URL)
         } catch (error) {
-            logger.error("Error sending welcome email", error);
+            next(error)
         }
         return res.status(200).json({message: "Email verified successfully"})
     } catch (error) {
-        logger.error({
-         message: "Verify Email Controller Error",
-         error: error.message,
-         stack: error.stack,
-      });
-
-      return res.status(500).json({
-         message: "Internal server error",
-      });
+        next(error)
     }
 }
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
     const { email, password } = req.body;
     try {
         if(!email || !password) return res.status(400).json({ message: "All fields required"});
@@ -113,12 +105,11 @@ export const login = async (req, res) => {
         })
     
     } catch (error) {
-        logger.error("Error in login controller", error);       
-        res.status(500).json({message: "Internal server error"})
+        next(error)
     }
 }
 
-export const logout = async (req, res) => {
+export const logout = async (req, res, next) => {
     res.clearCookie("jwt", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -127,7 +118,7 @@ export const logout = async (req, res) => {
     res.status(201).json({message: "Successfully logged out"})
 }
 
-export const forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
         if(!email) return res.status(400).json({message: "Input field must not empty"})
@@ -148,17 +139,16 @@ export const forgotPassword = async (req, res) => {
         try {
             await sendPasswordResetEmail(user.fullName, user.email, `${ENV.CLIENT_URL}/reset-password/${resetToken}`)
         } catch (error) {
-            logger.error("Email Error: " + error);
+            next(error)
         }
 
         return res.status(200).json({ message: "Reset token sent to email"})
     } catch (error) {
-        logger.error("Error in forgot password controller", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error)
     }
 }
 
-export const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res, next) => {
     try {
         const { token } = req.params;
         const { password } = req.body;
@@ -182,12 +172,11 @@ export const resetPassword = async (req, res) => {
         try {
             await sendPasswordResetConfirmationEmail(user.fullName, user.email)
         } catch (error) {
-            logger.error("Error sending password reset confirmation email", error);
+            next(error)
         }
 
         return res.status(200).json({message: "Password reset successful"})
     } catch (error) {
-        logger.error("Error in reset password controller", error);
-        return res.status(500).json({ message: "Internal server error" });
+        next(error)
     }
 }
