@@ -1,1 +1,31 @@
 @import "tailwindcss";
+
+@theme {
+    --color-primary: #4F46E5;
+    --color-primary-100: #4338CA;
+    --color-primary-50: #EEF2FF;
+
+    --color-secondary: #0D9488;
+    --color-secondary-100: #0F766E;
+    --color-secondary-50: #F0FDFA;
+
+    --color-success-100: #059669;
+    --color-success-50: #ECFDF5;
+
+    --color-warning-100: #D97706;
+    --color-warning-50: #FFFBEB;
+
+    --color-danger: #E11D48;
+    --color-danger: #FFF1F2;
+
+    --color-ink: #0F172A;
+    --color-muted: #475569;
+    --color-subtle: #94A3B8;
+    --color-surface: #F1F5F9;
+}
+
+@components {    
+    .card {
+        @apply rounded-xs bg-white shadow-sm
+    }
+}
