@@ -4,7 +4,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from './routes/auth.route.js';
-import clientRoutes from './routes/client.route.js'
+import clientRoutes from './routes/client.route.js';
+import invoiceRoutes from './routes/invoice.route.js';
 
 import {errorMiddleware} from "./middlewares/error.middleware.js";
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
@@ -20,6 +21,7 @@ app.use(ratelimiter)
 // ROUTES
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/clients', clientRoutes)
+app.use('/api/v1/invoices', invoiceRoutes)
 
 // MIDDLEWARES
 app.use(notFoundMiddleware);
