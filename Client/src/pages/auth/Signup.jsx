@@ -1,9 +1,13 @@
-import { Link } from 'react-router';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+
+import { useAuthStore } from '../../store/authStore';
 import AuthShell from '../../components/layouts/AuthShell';
 import Card from '../../components/ui/Card';
 import GoogleButton from '../../components/GoogleButton';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { Loader2 } from 'lucide-react';
 
 const passwordRules = [
     { key: 'length', label: 'At least 6 characters', test: (pass) => pass.length >= 6},
@@ -13,6 +17,28 @@ const passwordRules = [
 ];
 
 const Signup = () => {
+    const [formData, setFormData] = useState({
+        fullName: "",
+        email: "",
+        password: ""
+    })
+   const { signup, isLoading } = useAuthStore();
+   const navigate = useNavigate();
+
+   const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await signup(formData);
+      navigate('/verify-email');
+      console.log(response)
+    } catch (error) {
+      console.log("error logging in", error)
+    }
+  }
   //const passwordValue = watch('password', '');
   return (
     <AuthShell title="Create your account" subtitle="Start sending invoices that get paid faster.">
@@ -26,18 +52,22 @@ const Signup = () => {
             <div className='h-px flex-1 bg-slate-200' />
         </div>
 
-        <form className='flex flex-col gap-4'>
+        <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
             <Input 
                 id='fullName'
                 type='text'
                 label='Full name'
                 placeholder='Enter full name'
+                value={formData.fullName}
+                onChange={handleChange}
             />
             <Input 
                 id='email'
                 type='email'
                 label='Email'
                 placeholder='Enter email adress'
+                value={formData.email}
+                onChange={handleChange}
             />
             <div>
                 <Input
@@ -46,6 +76,8 @@ const Signup = () => {
                     label='Password'
                     placeholder='Enter password'
                     autoComplete='current-password'
+                    value={formData.password}
+                    onChange={handleChange}
                 />
                 <ul className='mt-2.5 grid grid-cols-2 gap-1.5'>
                     {passwordRules.map((rule) => {
@@ -62,14 +94,14 @@ const Signup = () => {
             </div>
 
             <Button type="submit" className="mt-2 w-full">
-                Create account
+                {isLoading ? <Loader2 className='size-4 animate-spin' /> : "Create account"}
             </Button>
         </form>
        </Card>
 
        <p className="mt-6 text-center text-sm text-muted">
             Already have an account?{' '}
-            <Link to="/signup" className="font-medium text-primary hover:underline">
+            <Link to="/login" className="font-medium text-primary hover:underline">
                 Login
             </Link>
         </p>
