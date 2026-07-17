@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import clsx from 'clsx';
 import { Loader2 } from "lucide-react";
 
 const variants = {
@@ -8,29 +8,20 @@ const variants = {
   ghost: 'bg-transparent text-muted hover:bg-surface disabled:opacity-60',
 };
 
-const Button = ({
-    children,
-    className,
-    disabled,
-    isLoading,
-    type = 'button',
-    variant = 'primary',
-    ...props
-}) => {
+const Button = ({children, disabled, isLoading, className, type = 'button', variant = 'primary', ...props}) => {
   return (
-    <button
-        type={type}
-        disabled={disabled || isLoading}
+    <button type={type}
+         disabled={disabled || isLoading}
         className={clsx(
-            'inline-flex items-center justify-center gap-2 rounded-control px-4 py-2.5',
+            'inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5',
             'text-sm font-medium transition-colors',
             'disabled:cursor-not-allowed',
             variants[variant],
             className
         )}
-        {...props}
+         {...props}
     >
-        {isLoading && <Loader2 className="size-4 animate-spin" />}
+        {isLoading && <Loader2 className="size-4 animate-sp in" />}
         {children}
     </button>
   )

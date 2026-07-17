@@ -1,47 +1,37 @@
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
-import { Loader2 } from 'lucide-react';
+import { Link, useParams, useNavigate } from "react-router";
+import { Lock, Loader } from "lucide-react";
 
-import { useAuthStore } from '../../store/authStore.js';
-import AuthShell from '../../components/layouts/AuthShell';
-import Card from '../../components/ui/Card';
+import { useAuthStore } from "../../utils/authStore";
+import AuthShell from "../../layouts/AuthShell";
+import Card from "../../components/ui/Card";
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { useState } from "react";
 
 const ResetPassword = () => {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { isLoading, error, resetPassword } = useAuthStore();
+
+  const { token } = useParams();
   const navigate = useNavigate();
-  const { token } = useParams()
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: ""
-  });
-  const [error, setError] = useState("")
-
-  const { resetPassword, isLoading} = useAuthStore();
-
-  const handleChange = (e) => {
-    setFormData({...formData, [e.target.id]: e.target.value})
-    if (error) setError("")
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Password Do not match");
-      return;
-    };
-
-    try {
-      const res = await resetPassword(token, { pasword: formData.password});
-      if (res) {
-        navigate('/dashboard')
-      }
-    } catch (error) {
-      console.log("Error resetting password", error)
+    if (password !== confirmPassword) {
+      alert('Password do not match');
+      return
     }
-  }
-  
+    try{
+      await resetPassword(token, password);
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000)
+    } catch (error) {
+      console.error(error)
+    }
+  };
+
   return (
     <AuthShell title="Set new password" subtitle="Your new password must be different from previously used passwords.">
       <Card>
@@ -50,39 +40,36 @@ const ResetPassword = () => {
             id="password"
             label="Password"
             type="password"
-            placeholder="••••••••"
+            placeholder="New password"
+            icon={Lock}
             required
-            value={formData.password}
-            onChange={handleChange}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           <Input 
             id="confirmPassword"
             label="Confirm password"
             type="password"
-            placeholder="••••••••"
+            placeholder="Confirm new password"
+            icon={Lock}
             required
-            value={formData.confirmPassword}
-            onChange={handleChange}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
-          {error && (
-            <p className="text-sm font-medium text-destructive text-red-500 mt-1">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-red-500 font-semibold">{error}</p>}
 
-          <Button type="submit" className="w-full mt-2" disabled={isLoading}>
-            {isLoading ? <Loader2 className='size-4 animate-spin' /> : "Reset password"}
+          <Button type="submit" className="w-full mt-2">
+            {isLoading ? <Loader size={24} className="mx-auto animate-spin" /> : "Reset Password"}
           </Button>
         </form>
-
-        <div className="mt-6 text-center">
-          <Link to="/login" className="text-sm font-medium text-primary hover:underline">
-            ← Back to login
-          </Link>
-        </div>
       </Card>
+      <div className="mt-6 text-center">
+        <Link to="/login" className="text-sm font-medium text-primary hover:underline">
+          ← Back to login
+        </Link>
+      </div>
     </AuthShell>
   )
 }
