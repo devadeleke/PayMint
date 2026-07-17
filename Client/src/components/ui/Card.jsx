@@ -1,12 +1,8 @@
-import clsx from 'clsx';
 
-const Card = ({ children, className, ...props }) => {
+const Card = ({ children, ...props}) => {
   return (
-    <div
-      className={clsx('rounded-card bg-white p-6 shadow-card sm:p-8', className)}
-      {...props}
-    >
-      {children}
+    <div className='rounded-md bg-white p-6 shadow-sm sm:p-8' {...props}>
+        {children}
     </div>
   )
 }

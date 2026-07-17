@@ -61,8 +61,7 @@ export const verifyEmail = async (req, res, next) => {
         const { code } = req.body;
         if(!code) return res.status(400).json({message: "Verification code required"})
 
-        const normalizedCode = code.trim();
-        const user = await User.findOne({ verificationToken: normalizedCode, verificationTokenExpiry: {$gt: Date.now()}})
+        const user = await User.findOne({ verificationToken: code, verificationTokenExpiry: {$gt: Date.now()}})
         if(!user) res.status(400).json({message: "invalid or expired verification code"})
         
         user.isVerified = true;
@@ -142,7 +141,7 @@ export const forgotPassword = async (req, res, next) => {
             next(error)
         }
 
-        return res.status(200).json({ message: "Reset token sent to email"})
+        return res.status(200).json({ message: "Password reset link sent to your email"})
     } catch (error) {
         next(error)
     }
