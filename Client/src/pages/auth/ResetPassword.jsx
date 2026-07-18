@@ -1,7 +1,7 @@
 import { Link, useParams, useNavigate } from "react-router";
 import { Lock, Loader } from "lucide-react";
 
-import { useAuthStore } from "../../utils/authStore";
+import { useAuthStore } from "../../store/authStore";
 import AuthShell from "../../layouts/AuthShell";
 import Card from "../../components/ui/Card";
 import Input from '../../components/ui/Input';
