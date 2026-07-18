@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { Loader, Mail } from 'lucide-react';
 
-import { useAuthStore } from "../../utils/authStore";
+import { useAuthStore } from "../../store/authStore";
 import AuthShell from "../../layouts/AuthShell";
 import Card from "../../components/ui/Card";
 import Input from '../../components/ui/Input';

@@ -1,4 +1,6 @@
 import { ArrowLeftRight, BellElectric, CheckCircle, Wallet } from 'lucide-react';
+
+import { useAuthStore } from '../store/authStore';
 import PageHeader from '../layouts/PageHeader';
 import StatCard from '../components/ui/StatCard';
 
@@ -10,9 +12,12 @@ import StatCard from '../components/ui/StatCard';
   ];
 
 const DashboardPage = () => {
+  const { user } = useAuthStore();
+  console.log(user)
+
   return (
     <div>
-      <PageHeader title={`Welcome, AOV 👋`} subtitle="Here's a snapshot of your activity." />
+      <PageHeader title={`Welcome, ${user?.fullName} 👋`} subtitle="Here's a snapshot of your activity." />
       <StatCard data={stats} />
 
       {/* CHARTS */}

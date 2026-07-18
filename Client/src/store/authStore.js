@@ -16,7 +16,7 @@ export const useAuthStore = create((set) => ({
         set({ isCheckingAuth: true, error: null});
         try {
            const res = axiosInstance.get('/auth/check-auth')
-           set({ user: res.data.user, isAuthenticated: true, isCheckingAuth: false})
+           set({ user: res.data, isAuthenticated: true, isCheckingAuth: false})
         } catch (error) {
            set({ error: error.response?.data?.message || null, isCheckingAuth: false, isAuthenticated: false});
         }
@@ -26,7 +26,7 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null})
         try {
             const res = await axiosInstance.post('/auth/signup', data);
-            set({ user: res.data.user, isAuthenticated: true,})
+            set({ user: res.data, isAuthenticated: true,})
         } catch (error) {
             set({ error: error.response?.data?.message || 'Signup Failed'});
             throw error;
@@ -39,7 +39,7 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null});
         try {
             const res = await axiosInstance.post('/auth/verify-email', { code });
-            set({ user: res.data.user, isAuthenticated: true})
+            set({ user: res.data, isAuthenticated: true})
             toast.success('Email successfully verified')
         } catch (error) {
             set({ error: error.response?.data?.message})
@@ -53,13 +53,23 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null})
         try {
             const res = await axiosInstance.post('/auth/login', data);
-            set({ user: res.data.user, isAuthenticated: true, isLoading: false})
+            set({ user: res.data, isAuthenticated: true, isLoading: false})
             console.log(res)
         } catch (error) {
             set({ error: error.response?.data?.message || 'Login Failed'});
             throw error
         } finally {
             set({ isLoading: false,})
+        }
+    },
+
+    logout: async () => {
+        try {
+           await axiosInstance('/auth/logout');
+           toast.success('User logged out')
+        } catch (error) {
+            set({ error: error.response?.data?.message || 'Login Failed'});
+            toast.error('Error logging out')
         }
     },
 
@@ -81,7 +91,7 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null})
         try {
             const res = await axiosInstance.post(`/auth/reset-password/${token}`, {password})
-            set({ user: res.data.user, message: res.data.message})
+            set({ user: res.data, message: res.data.message})
             toast.success("Password reset successful! You can now log in.")
         } catch (error) {
             set({ error: error?.response?.data?.message || "Error resetting password."})

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Loader2, Lock, Mail } from "lucide-react";
 
-import { useAuthStore } from '../../utils/authStore';
+import { useAuthStore } from '../../store/authStore';
 import AuthShell from "../../layouts/AuthShell";
 import Card from "../../components/ui/Card";
 import GoogleButton from "../../components/ui/GoogleButton";
@@ -14,13 +14,14 @@ const Login = () => {
     email: "",
     password: ""
   })
+  const navigate = useNavigate();
   const { isLoading, login } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       await login(formData)
-      console.log('logged in')
+      navigate('/')
     } catch (error) {
       console.log(error)
     }
