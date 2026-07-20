@@ -26,12 +26,13 @@ export const useAuthStore = create((set) => ({
         set({ isLoading: true, error: null})
         try {
             const res = await axiosInstance.post('/auth/signup', data);
-            set({ user: res.data, isAuthenticated: true,})
+            set({ user: res.data, isAuthenticated: true,});
+            toast.success('Email verification sent')
         } catch (error) {
             set({ error: error.response?.data?.message || 'Signup Failed'});
-            throw error;
+            toast.error('Sign up failed')
         } finally {
-            set({ isLoading: false})
+            set({ isLoading: false, error: null})
         }
     },
 
@@ -43,9 +44,9 @@ export const useAuthStore = create((set) => ({
             toast.success('Email successfully verified')
         } catch (error) {
             set({ error: error.response?.data?.message})
-            throw error
+            toast.error("Email verification failed")
         } finally {
-            set({ isLoading: false})
+            set({ isLoading: false, error: null})
         }
     },
 
@@ -57,19 +58,19 @@ export const useAuthStore = create((set) => ({
             console.log(res)
         } catch (error) {
             set({ error: error.response?.data?.message || 'Login Failed'});
-            throw error
+            toast.error('Log in failed')
         } finally {
-            set({ isLoading: false,})
+            set({ isLoading: false, error: null})
         }
     },
 
     logout: async () => {
         try {
-           await axiosInstance('/auth/logout');
-           toast.success('User logged out')
+            await axiosInstance.post("/auth/logout")
+            set({ user: null})
+            toast.success("Logged out successfully")
         } catch (error) {
-            set({ error: error.response?.data?.message || 'Login Failed'});
-            toast.error('Error logging out')
+            toast.error(error.response?.data?.message || "Error logging out")
         }
     },
 
@@ -81,7 +82,7 @@ export const useAuthStore = create((set) => ({
             toast.success("Password reset link sent to your email!")
         } catch (error) {
             set({ error: error?.response?.data?.message || "Error sending reset password email."})
-            throw error;
+            toast.error('Error sending reset link.')
         } finally {
             set({isLoading: false, error: null})
         }
@@ -95,8 +96,7 @@ export const useAuthStore = create((set) => ({
             toast.success("Password reset successful! You can now log in.")
         } catch (error) {
             set({ error: error?.response?.data?.message || "Error resetting password."})
-            toast.error(error?.response?.data?.message || "Error resetting password.")
-            throw error;
+            toast.error("Error resetting password.")
         } finally {
             set({isLoading: false, error: null})
         }

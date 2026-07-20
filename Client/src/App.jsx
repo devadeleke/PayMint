@@ -14,9 +14,9 @@ import ResetPassword from './pages/auth/ResetPassword';
 
 import MainLayout from './layouts/MainLayout';
 import DashboardPage from './pages/DashboardPage';
-import ClientsPage from './pages/ClientsPage';
-import InvoicesPage from './pages/InvoicesPage';
-import SettingsPage from './pages/SettingsPage';
+import ClientsPage from './pages/clients/ClientsPage';
+import InvoicesPage from './pages/invoices/InvoicesPage';
+import SettingsPage from './pages/settings/SettingsPage';
 
 // const ProtectRoute = ({ children }) => {
 //   const { isAuthenticated, user } = useAuthStore();
