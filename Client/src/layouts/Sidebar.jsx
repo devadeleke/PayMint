@@ -13,12 +13,12 @@ const Sidebar = ({ collapsed, toggleCollapse, toggleSidebar, isMobile}) => {
     <div className="flex flex-col h-full w-64 border-r border-gray-200">
 
        {/* LOGO */}
-       <div class="flex items-center h-16 border-b border-slate-100 justify-between px-4">
-         <button class="flex items-center gap-3 cursor-pointer min-w-0">
-          <div class="size-9 rounded-lg bg-primary text-white flex items-center justify-center shrink-0">
+       <div className="flex items-center h-16 border-b border-slate-100 justify-between px-4">
+         <button className="flex items-center gap-3 cursor-pointer min-w-0">
+          <div className="size-9 rounded-lg bg-primary text-white flex items-center justify-center shrink-0">
             <Zap size={18} />
           </div>
-          <span class="text-lg font-bold text-slate-900 truncate">PayMint</span>
+          <span className="text-lg font-bold text-slate-900 truncate">PayMint</span>
          </button>
          <button>
            <PanelLeftClose size={18}/>
