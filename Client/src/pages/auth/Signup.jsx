@@ -22,7 +22,9 @@ const Signup = () => {
     e.preventDefault()
     try {
       await signup(formData)
-      navigate("/verify-email")
+      if (!error) {
+        navigate("/verify-email")
+      }
     } catch (error) {
       console.log(error)
     }
