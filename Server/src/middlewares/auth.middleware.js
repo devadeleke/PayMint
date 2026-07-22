@@ -2,26 +2,35 @@ import jwt from 'jsonwebtoken';
 
 import { ENV } from '../config/env.js';
 import User from '../models/user.model.js';
+import { AppError } from '../utils/appError.js';
 
 export const protectRoute = async (req, res, next) => {
-    const token = req.cookies.jwt;
-    if (!token) return res.status(401).json({ message: 'Unauthorized: No token provided' });
-
+    
     try {
+        // GET JWT TOKEN
+        const token = req.cookies.jwt;
+        if (!token) throw new AppError("Unauthorized. Please log in.", 401)
+
         const decoded = jwt.verify(token, ENV.JWT_SECRET_KEY);
-        if(!decoded) return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        /*......
+            valid token → returns payload
+            invalid token → throws an error
 
-        const user = await User.findById(decoded.userId).select('-password');
-        if (!user) return res.status(404).json({ message: 'User not found' });
+            It never returns undefined.
+        */
+        //if(!decoded) throw new AppError('Unauthorized: Invalid token', 401)
 
-        req.user = user;
+        // const user = await User.findById(decoded.userId).select('-password');
+        // if (!user) throw new AppError('User not found')
+
+        req.userId = decoded.userId;
         next();
     } catch (error) {
-        //Handle specific JWT errors separately for better clarity in responses (Return 401 for invalid/expired JWTs instead of 500.)
-        if (error?.name === 'TokenExpiredError' || error?.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
+            return next(new AppError("Unauthorized. Invalid or expired token.", 401));
         }
-        console.log("Error in protectRoute middleware:", error);
-        return res.status(500).json({ message: "Internal server error" });
+
+        next(error);
     }
+
 }
