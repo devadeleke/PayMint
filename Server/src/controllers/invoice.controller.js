@@ -1,82 +1,171 @@
 import mongoose from 'mongoose';
-import { DEFAULT_LIMIT, DEFAULT_PAGE, DEFAULT_SORT, MAX_LIMIT } from '../constants/invoice.constants.js';
+import { DEFAULT_LIMIT, DEFAULT_PAGE, DEFAULT_SORT, MAX_LIMIT, PAYMENT_STATUS } from '../constants/invoice.constants.js';
 import Invoice from '../models/invoice.model.js';
 import Client from '../models/client.model.js';
-import { AppError } from '../utils/appError.js'
+import { AppError } from '../utils/appError.js';
+
+export const getDashboardStats = async (req, res, next) => {
+  try {
+    const today = new Date();
+    const [stats] = await Invoice.aggregate([
+      {
+        $match: {isArchived: false},
+        $group: {
+          _id: null,
+          totalRevenue: {$sum: "$total"},
+          paid: {
+            $sum: { $cond: [
+              {$eq: [
+                "$paymentStatus",
+                PAYMENT_STATUS.PAID
+              ],
+            },
+            "$amountPaid",
+            0,
+            ]}
+          }, // paid
+
+          outstanding: {
+            $sum: {
+              $cond: [
+                {
+                  $in: [
+                    "$paymentStatus",
+                    [
+                      PAYMENT_STATUS.UNPAID,
+                      PAYMENT_STATUS.PARTIAL
+                    ],
+                  ],
+                },
+                "$balanceDue",
+                0,
+              ],
+            },
+          }, // outstanding
+
+          overdue: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $lt: ["$dueDate", today] },
+                    { $ne: ["$balanceDue", PAYMENT_STATUS.PAID] }
+                  ]
+                },
+                "$balanceDue",
+                0
+              ]
+            }
+          },
+
+        }// group end
+      }
+    ])
+
+    res.status(200).json({
+      success: true,
+      data: stats || {
+          totalRevenue: 0,
+          paid: 0,
+          outstanding: 0,
+          overdue: 0,u
+      },
+    });
+  } catch (error) {
+    next(error)
+  }
+}
 
 export const createInvoice = async (req, res, next) => {
-    try {
-      const {
-        client,
-        title,
-        description,
-        dueDate,
-        items,
-        tax = 0,
-        discount = 0,
-        notes,
-        currency = 'NGN',
-      } = req.body;  
+  try {
+    // GET REQUEST DATA
+    const { client, title, description, dueDate, items, tax = 0, discount = 0, currency = "USD", notes } = req.body;
+    
+    // VALIDATE REQUIRED FIELDS
+    if (!client || !title || !dueDate || !Array.isArray(items) || items.length === 0) {
+      throw new AppError("Client, title, due date and at least one invoice item are required.", 400)
+    };
 
-      if (!client || !title || !dueDate || !items?.length) {
-        throw new AppError('Client, title, due date and at least one item are required.', 404)
+    // VALIDATE OBJECTID
+    if (!mongoose.Types.ObjectId.isValid(client)) {
+      throw new AppError("Invalid client ID.", 400)
+    };
+
+    // CHECK CLIENT 
+    const existingClient = await Client.findById(client);
+    if (!existingClient) {
+      throw new AppError("Client not found.", 404)
+    };
+
+    if (existingClient.isArchived) {
+      throw new AppError("Cannot create invoice for an archived client.", 400)
+    };
+
+    // VALIDATE INVOICE ITEMS
+    const invoiceItems = items.map((item, index) => {
+      if (!item.description?.trim()) {
+        throw new AppError(`Item ${index + 1}: Description is required.`, 400)
       };
 
-      const existingClient = await Client.findById(client);
-
-      if (!existingClient) {
-        throw new AppError('Client not found', 404)
+      if (!item.quantity || item.quantity <= 0) {
+        throw new AppError(`Item ${index + 1}: Quantity must be greater than zero.`, 400)
       };
 
-      // Check if client is archived
-      if (existingClient.isArchived) {
-        throw new AppError('Cannot create invoice for an archived client.', 404)
+      if (item.unitPrice < 0) {
+        throw new AppError(`Item ${index + 1}: Unit price cannot be negative.`, 400);
+      }
+
+      return {
+          description: item.description.trim(),
+          quantity: Number(item.quantity),
+          unitPrice: Number(item.unitPrice),
+          amount: Number(item.quantity) * Number(item.unitPrice),
       };
 
-      // Calculate item amounts
-    const invoiceItems = items.map((item) => ({
-      description: item.description,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      amount: item.quantity * item.unitPrice,
-    }));
+    });
 
-    // Calculate subtotal
-    const subtotal = invoiceItems.reduce(
-      (sum, item) => sum + item.amount,
+    // CALCULATE SUBTOTAL
+    const subTotal = invoiceItems.reduce(
+      (sum, item) => sum + item.amount, 
       0
     );
 
-    // Calculate total
-    const total = subtotal + tax - discount;
+    // CALCULATE TOTAL
+    const total = subtotal + Number(tax) - Number(discount);
+    if(total < 0) {
+      throw new AppError("Invoice total can not be negative", 400)
+    };
 
-    // Generate invoice number
+    // GENERATE INVOICE NUMBER
     const invoiceNumber = `INV-${Date.now()}`;
 
     const invoice = await Invoice.create({
       client,
       invoiceNumber,
-      title,
-      description,
+      title: title.trim(),
+      description: description?.trim(),
       dueDate,
       items: invoiceItems,
       subtotal,
-      tax,
-      discount,
+      tax: Number(tax),
+      discount: Number(discount),
       total,
-      notes,
+      amountPaid: 0,
+      balanceDue: total,
       currency,
+      notes,
+      createdBy: req.user._id
     });
 
     return res.status(201).json({
       success: true,
-      message: 'Invoice created successfully.',
-      data: invoice,
-    });
+      message: "Invoice created successfully",
+      data: invoice
+    })
 
-    } catch (error) {
-        next(error)
-    }
+  } catch (error) {
+    next(error)
+  }
 };
 
 export const getInvoices = async (req, res, next) => {

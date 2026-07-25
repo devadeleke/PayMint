@@ -21,10 +21,8 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      await signup(formData)
-      if (!error) {
-        navigate("/verify-email")
-      }
+      await signup(formData);
+      navigate("/verify-email")
     } catch (error) {
       console.log(error)
     }
