@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { ArrowRight, Mail, Map, Phone, Plus, Search } from 'lucide-react';
+import GlobalModal from '../../components/modals/GlobalModal';
+import ClientModal from "../../components/modals/ClientModal"
 
 const Clients = [
   {id: 1, company: "Acme Corporation", email: "marcus@acmecorp.com", contact: "+1 (555) 234-5678", location: "San Francisco, USA", invoiceList: 3, payment: "$2,450.00", outstanding: "$0.00"},
@@ -24,6 +27,7 @@ const Clients = [
 ]
 
 const ClientsPage = () => {
+  const [modal, setModal] = useState(null);
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -33,7 +37,7 @@ const ClientsPage = () => {
             <input placeholder="Search clients by name, company, email..." className="w-full pl-9 pr-9 py-2.5 rounded-md border border-slate-200 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition-colors" type="text" value="" />
           </div>
         </div>
-        <button className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-md transition-all duration-200 hover:scale-[1.02] whitespace-nowrap cursor-pointer">
+        <button onClick={() => setModal("add")} className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-md transition-all duration-200 hover:scale-[1.02] whitespace-nowrap cursor-pointer">
           <Plus size={15} />
           Add client
         </button>
@@ -87,10 +91,13 @@ const ClientsPage = () => {
                 <p className="text-sm font-semibold font-mono text-slate-900">{client.outstanding}</p>
               </div>
             </div>
-
           </div>
         ))}
       </div>
+
+      <GlobalModal title="Client form" open={modal === "add"} onClose={() => setModal(null)}>
+        <ClientModal onClose={() => setModal(null)} />
+      </GlobalModal>
     </div>
   )
 }
