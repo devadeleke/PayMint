@@ -1,4 +1,8 @@
+import { useState } from 'react'
 import { ArrowUpDown, MoreHorizontal, Search} from 'lucide-react';
+
+import GlobalModal from '../../components/modals/GlobalModal';
+import InvoiceModal from '../../components/modals/InvoiceModal';
 
 const statuses = [
   {id: 1, label: 'All', size: 14, color: "bg-slate-800 text-white"},
@@ -19,6 +23,8 @@ const invoices = [
 ];
 
 const InvoicesPage = () => {
+  const [modal, setModal] = useState(null)
+
   return (
    <div>
     <div className="mb-6">
@@ -137,6 +143,9 @@ const InvoicesPage = () => {
 
       </div>
     </div>
+    <GlobalModal title="Invoice form" open={modal === "add"} onClose={() => setModal(null)}>
+      <InvoiceModal onClose={() => setModal(null)}/>
+    </GlobalModal>
    </div>
   )
 }
