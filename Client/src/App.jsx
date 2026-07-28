@@ -24,18 +24,18 @@ import InvoicesPage from './pages/invoices/InvoicesPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
 const App = () => {
-  // const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
-  // const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
 
-  // useEffect(() => {
-  //   checkAuth()
-  // }, []);
+  useEffect(() => {
+    checkAuth()
+  }, []);
 
-  // if(isCheckingAuth) return (
-  //   <div className='w-full h-screen flex items-center justify-center'>
-  //     <Loader size={24} className='animate-spin' />
-  //   </div>
-  // )
+  if(isCheckingAuth) return (
+    <div className='w-full h-screen flex items-center justify-center'>
+      <Loader size={24} className='animate-spin' />
+    </div>
+  )
 
   return (
     <>
@@ -74,9 +74,9 @@ const App = () => {
       />
 
         <Route path='/' element={
-          // <ProtectedRoute>
+          <ProtectedRoute>
             <MainLayout />
-          // </ProtectedRoute>
+          </ProtectedRoute>
         } 
       >
           <Route index element={<DashboardPage />} />

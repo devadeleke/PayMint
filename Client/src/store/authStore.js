@@ -62,7 +62,7 @@ export const useAuthStore = create((set) => {
                 authenticatedUser(res.data.data)
                 toast.success(res.data.message);
             } catch (error) {
-                handleError(error, 'Signup Failed');
+                handleError(error, `Signup Failed Error ${error}`);
             } finally {
                 stopLoading();
             }

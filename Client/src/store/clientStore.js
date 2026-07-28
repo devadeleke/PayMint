@@ -38,5 +38,17 @@ export const useClientStore = create((set) => ({
 
            throw error;
         }
+    },
+
+    // GET CLIENTS
+    getClients: async () => {
+        set({ isFetchingClients: true, error: null})
+        try {
+           const res = await axiosInstance.get('/clients');
+           set({ clients: res.data.data, isFetchingClients: false}) 
+        } catch (error) {
+            console.log(error)
+            set({ isFetchingClients: false})
+        }
     }
 }))
