@@ -22,7 +22,7 @@ app.use(
   })
 );
 app.use(cookieParser())
-app.use(ratelimiter)
+//app.use(ratelimiter)
 
 // ROUTES
 app.use('/api/v1/auth', authRoutes)
