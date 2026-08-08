@@ -20,6 +20,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 import MainLayout from './layouts/MainLayout';
 import DashboardPage from './pages/DashboardPage';
 import ClientsPage from './pages/clients/ClientsPage';
+import ClientPage from './pages/clients/ClientPage'
 import InvoicesPage from './pages/invoices/InvoicesPage';
 import SettingsPage from './pages/settings/SettingsPage';
 
@@ -81,9 +82,12 @@ const App = () => {
       >
           <Route index element={<DashboardPage />} />
           <Route path='clients' element={<ClientsPage />} />
+          <Route path='clients/:id' element={<ClientPage />} />
           <Route path='invoices' element={<InvoicesPage />} />
           <Route path='settings' element={<SettingsPage />} />
         </Route>
+
+        
       </Routes>
       <Toaster />
     </>

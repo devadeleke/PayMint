@@ -131,7 +131,7 @@ export const createInvoice = async (req, res, next) => {
     );
 
     // CALCULATE TOTAL
-    const total = subtotal + Number(tax) - Number(discount);
+    const total = subTotal + Number(tax) - Number(discount);
     if(total < 0) {
       throw new AppError("Invoice total can not be negative", 400)
     };
@@ -146,7 +146,7 @@ export const createInvoice = async (req, res, next) => {
       description: description?.trim(),
       dueDate,
       items: invoiceItems,
-      subtotal,
+      subTotal,
       tax: Number(tax),
       discount: Number(discount),
       total,
@@ -349,23 +349,23 @@ export const updateInvoice = async (req, res, next) => {
         amount: item.quantity * item.unitPrice,
       }));
 
-      const subtotal = updatedItems.reduce(
+      const subTotal = updatedItems.reduce(
         (sum, item) => sum + item.amount,
         0
       );
 
       invoice.items = updatedItems;
-      invoice.subtotal = subtotal;
+      invoice.subTotal = subTotal;
       invoice.tax = tax ?? invoice.tax;
       invoice.discount = discount ?? invoice.discount;
       invoice.total =
-        invoice.subtotal + invoice.tax - invoice.discount;
+        invoice.subTotal + invoice.tax - invoice.discount;
     } else {
       if (tax !== undefined) invoice.tax = tax;
       if (discount !== undefined) invoice.discount = discount;
 
       invoice.total =
-        invoice.subtotal + invoice.tax - invoice.discount;
+        invoice.subTotal + invoice.tax - invoice.discount;
     }
 
     await invoice.save();

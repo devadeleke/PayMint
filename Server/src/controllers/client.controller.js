@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { AppError } from '../utils/appError.js';
 import { logger } from '../config/logger.js';
 import Client from '../models/client.model.js';
@@ -19,6 +20,7 @@ export const createClient = async (req, res, next) => {
             }
 
              const client = await Client.create({
+                userId: req.userId,
                 fullName: fullName,
                 email: email,
                 company: company || '',
@@ -26,8 +28,6 @@ export const createClient = async (req, res, next) => {
                 billingAddress: billingAddress || {},
                 notes: notes || '',
             });
-
-            logger.info(`Client "${client.fullName}" created`);
 
             return res.status(201).json({
                 status: 'success',
@@ -66,21 +66,38 @@ export const getClients = async (req, res, next) => {
 
 export const getClient = async (req, res, next) => {
     try {
-        const client = await Client.findOne({ _id: req.params.id, isArchived: false });
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid client ID",
+            });
+        }
+
+        const client = await Client.findOne({
+            _id: id,
+            userId: req.userId,
+            isArchived: false,
+        });
+
+        console.log("Client:", client);
+        console.log("Logged-in User:", req.userId);
+
         if (!client) {
             return res.status(404).json({
                 success: false,
                 message: "Client not found",
             });
-        };
+        }
 
-        res.json({
+        return res.status(200).json({
             success: true,
-            data: client,
+            data: client
         });
     } catch (error) {
         next(error);
-    };
+    }
 };
 
 export const updateClient = async (req, res, next) => {
@@ -115,39 +132,50 @@ export const updateClient = async (req, res, next) => {
 };
 
 export const archiveClient = async (req, res, next) => {
-    try {
-        const client = await Client.findByIdAndUpdate(
-            req.params.id,
-            {
-                isArchived: true
-            },
-            {
-                returnDocument: 'after'
-            }
-        );
+  try {
+    const client = await Client.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: req.userId,
+      },
+      {
+        $set: {
+          isArchived: true,
+          archivedAt: new Date(),
+        },
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
-        if (!client) {
-            return res.status(404).json({
-                success: false,
-                message: "Client not found",
-            });
-        };
+    if (!client) {
+      return res.status(404).json({
+        success: false,
+        message: "Client not found",
+      });
+    }
 
-        logger.info(`Client "${client.fullName}" archived`);
+    logger.info(`Client "${client.fullName}" archived`);
 
-        res.json({
-            success: true,
-            data: client,
-        });
-    } catch (error) {
-        next(error)
-    };
+    return res.status(200).json({
+      success: true,
+      message: "Client archived successfully",
+      data: client,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const restoreClient = async (req, res, next) => {
   try {
-    const client = await Client.findByIdAndUpdate(
-      req.params.id,
+    const client = await Client.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: req.user._id,
+      },
       {
         isArchived: false,
       },
@@ -161,15 +189,16 @@ export const restoreClient = async (req, res, next) => {
         success: false,
         message: "Client not found",
       });
-    };
+    }
 
     logger.info(`Client "${client.fullName}" restored`);
 
-    res.json({
+    res.status(200).json({
       success: true,
+      message: "Client restored successfully",
       data: client,
     });
   } catch (error) {
-    next(error)
-  };
+    next(error);
+  }
 };
