@@ -1,8 +1,6 @@
 export const INVOICE_STATUS = Object.freeze({
   DRAFT: 'draft',
   SENT: 'sent',
-  VIEWED: 'viewed',
-  PAID: 'paid',
   OVERDUE: 'overdue',
   CANCELLED: 'cancelled',
 });
