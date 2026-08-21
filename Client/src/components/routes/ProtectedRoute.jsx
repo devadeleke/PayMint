@@ -1,16 +1,27 @@
 import { Navigate } from 'react-router';
-
 import { useAuthStore } from '../../store/authStore';
 
 const ProtectedRoute = ({ children }) => {
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isCheckingAuth = useAuthStore((state) => state.isCheckingAuth);
 
-  if(!isAuthenticated || !user.isVerified) {
-    return <Navigate to='/signup' replace />
+  // Wait until authentication check is complete
+  if (isCheckingAuth) {
+    return null;
   }
 
-  return children
-}
+  // User must exist and be authenticated
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/signup" replace />;
+  }
 
-export default ProtectedRoute
+  // User must have verified email
+  if (!user.isVerified) {
+    return <Navigate to="/verify-email" replace />;
+  }
+
+  return children;
+};
+
+export default ProtectedRoute;

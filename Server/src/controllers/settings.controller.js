@@ -1,4 +1,5 @@
 import Settings from "../models/settings.model.js";
+import cloudinary from "../config/cloudinary.js";
 import { AppError } from "../utils/appError.js";
 
 // GET BUSINESS SETTINGS
@@ -8,7 +9,6 @@ export const getSettings = async (req, res, next) => {
 
     let settings = await Settings.findOne({ userId });
 
-    // Create default settings if none exist
     if (!settings) {
       settings = await Settings.create({
         userId,
@@ -23,7 +23,6 @@ export const getSettings = async (req, res, next) => {
     next(error);
   }
 };
-
 
 // UPDATE BUSINESS SETTINGS
 export const updateSettings = async (req, res, next) => {
@@ -42,19 +41,49 @@ export const updateSettings = async (req, res, next) => {
       taxId,
     } = req.body;
 
+    let logoUrl;
+
+    if (req.file) {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "paymint/business-logos",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+
+        uploadStream.end(req.file.buffer);
+      });
+
+      logoUrl = uploadResult.secure_url;
+    }
+
+    const updateData = {
+      businessName,
+      email,
+      phone,
+      address,
+      city,
+      country,
+      postalCode,
+      website,
+      taxId,
+    };
+
+    if (logoUrl) {
+      updateData.logo = logoUrl;
+    }
+
     const settings = await Settings.findOneAndUpdate(
       { userId },
-      {
-        businessName,
-        email,
-        phone,
-        address,
-        city,
-        country,
-        postalCode,
-        website,
-        taxId,
-      },
+      updateData,
       {
         returnDocument: "after",
         runValidators: true,

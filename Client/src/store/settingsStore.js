@@ -32,18 +32,24 @@ const settingsStore = create((set) => ({
     }
   },
 
-  updateSettings: async (data) => {
+  updateSettings: async (data, logo) => {
     set({ isUpdatingSettings: true });
 
-    console.log("UPDATE SETTINGS DATA:", data);
-
     try {
+      const formData = new FormData();
+
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+
+      if (logo) {
+        formData.append("logo", logo);
+      }
+
       const response = await axiosInstance.put(
         "/settings",
-        data
+        formData
       );
-
-      console.log("UPDATE SETTINGS RESPONSE:", response.data);
 
       set({
         settings: response.data.settings,
@@ -52,18 +58,7 @@ const settingsStore = create((set) => ({
 
       return response.data.settings;
     } catch (error) {
-      console.error("UPDATE SETTINGS ERROR:", error);
-      console.error(
-        "UPDATE SETTINGS RESPONSE:",
-        error.response?.data
-      );
-      console.error(
-        "UPDATE SETTINGS STATUS:",
-        error.response?.status
-      );
-
       set({ isUpdatingSettings: false });
-
       throw error;
     }
   },
