@@ -1,4 +1,5 @@
 import app from './app.js';
+import mongoose from "mongoose"
 import {ENV} from './config/env.js';
 import { connectDB } from './config/db.js';
 import { logger } from './config/logger.js';
@@ -22,7 +23,7 @@ const startServer = async () => {
   try {
     await connectDB();
 
-    server = app.listen(PORT, () => {
+    server = app.listen(PORT, "0.0.0.0", () => {
       logger.info(
         {port: PORT, environment: ENV.NODE_ENV},
         "HTTP server started"
